@@ -9,7 +9,7 @@ from healthapp.signal import contact_signal
 from healthapp.email import send_email_alert
 
 """homepage"""
-@app.route('/api', methods=['GET'])
+@app.route('/', methods=['GET'])
 def home():
     if request.method=='GET':
         return render_template('form.html')
@@ -18,7 +18,10 @@ def home():
 @app.route('/register/', methods=['GET','POST'])
 @csrf.exempt
 @cross_origin()
-def register():    
+def register():
+    if request.method=='GET':
+        return redirect('/')
+    
     if request.method=='POST':
         name=request.json['name']
         email=request.json['email']
@@ -98,6 +101,9 @@ def register():
 @csrf.exempt
 @cross_origin()
 def login():
+    if request.method=='GET':
+        return redirect('/')
+    
     if request.method=='POST':
         email=request.json['email']
         pwd=request.json['pwd']
