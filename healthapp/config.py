@@ -11,5 +11,8 @@ class LiveConfig(Config):
     
     
 class Test_config(object):
+    WTF_CSRF_ENABLED = False
+    SQLALCHEMY_DATABASE_URI="mysql+mysqlconnector://root@127.0.0.1/test"
+    
     DATABASE_URI = "make i test your code"
     
