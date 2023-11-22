@@ -9,7 +9,7 @@ from healthapp.signal import contact_signal
 from healthapp.email import send_email_alert
 
 """homepage"""
-@app.route('/', methods=['GET'])
+@app.route('/api', methods=['GET'])
 def home():
     if request.method=='GET':
         return render_template('form.html')
