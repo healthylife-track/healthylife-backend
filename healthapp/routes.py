@@ -12,7 +12,7 @@ from healthapp.email import send_email_alert
 @app.route('/', methods=['GET'])
 def home():
     if request.method=='GET':
-        return render_template('form.html')
+        return render_template('index.html')
 
 """register"""
 @app.route('/register/', methods=['GET','POST'])
@@ -93,10 +93,11 @@ def register():
                                user_pass=formated)
                 db.session.add(newuser)
                 db.session.commit()
-            return jsonify({"msg":"Registration Successful"})
+                return jsonify({"msg":"Registration Successful"})
+        else:
+            return jsonify({"msg":"Kindly fill all field"})
 
-
-"""register"""
+"""login"""
 @app.route('/login/', methods=['GET','POST'])
 @csrf.exempt
 @cross_origin()
