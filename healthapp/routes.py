@@ -28,15 +28,14 @@ def register():
         cpwd=request.json['cpwd']
         licenseNo = request.json['licenseNo']
         bloodgroup = request.json['bloodgroup']
-        # csrf_token = csrf.generate_csrf()
-        # print(csrf_token)
+        
         if role == 'patient' and licenseNo == 'None':
-            if (name =="" and
-                email =="" and
-                role =="" and
-                phoneNo =="" and
-                bloodgroup =="" and
-                pwd=="" and
+            if (name =="" or
+                email =="" or
+                role =="" or
+                phoneNo =="" or
+                bloodgroup =="" or
+                pwd=="" or
                 cpwd==""):
                 return jsonify({"msg":"One or more field is empty"})
             
@@ -62,13 +61,13 @@ def register():
                 return jsonify({"msg":"Registration Successful"})
         
         elif role == 'doctor' and licenseNo !='':
-            if (name =="" and
-                email =="" and
-                role =="" and
-                phoneNo =="" and
-                licenseNo =="" and
-                bloodgroup =="" and
-                pwd=="" and
+            if (name =="" or
+                email =="" or
+                role =="" or
+                phoneNo =="" or
+                licenseNo =="" or
+                bloodgroup =="" or
+                pwd=="" or
                 cpwd==""):
                 return jsonify({"msg":"One or more field is empty"})
             
@@ -116,7 +115,6 @@ def login():
                 # checking password hash
                 checking = check_password_hash(formated_pwd, pwd)
                 if checking:
-                    # access_token=create_access_token
                     session['user']=user.user_id
                     lo=Login(login_email=user.user_email, login_userid=user.user_id)
                     db.session.add(lo)
