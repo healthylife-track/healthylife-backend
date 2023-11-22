@@ -11,6 +11,7 @@ class User(db.Model):
     user_phoneNo = db.Column(db.String(16), nullable=False)
     user_licenseNo = db.Column(db.String(50), nullable=True)
     user_bloodgroup = db.Column(db.String(10), nullable=False)
+    #relationship
     mtobj = db.relationship("MedTrack", back_populates='userobj')
     mdobj = db.relationship("MedReminder", back_populates='userobj2')
     loginobj = db.relationship('Login', back_populates='userobj3')

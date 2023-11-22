@@ -1,4 +1,5 @@
 """to start an app"""
+import datetime
 from flask import render_template, request, jsonify, session, redirect
 from flask_cors import cross_origin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -130,7 +131,21 @@ def login():
                 else:
                     return jsonify({"msg":"kindly supply a valid email address and password"})
         
+
+"""logout session"""
+@app.route('/logout/')
+def logout():
+    loggedin = session.get('user')
+    if loggedin==None:
+        return redirect('/')
         
+    if request.method == 'GET':
+        session.pop('user', None)
+        lo=Login.query.filter_by(login_userid=loggedin, logout_date=None).first()
+        lo.logout_date=datetime.utcnow()
+        db.session.commit()
+        return jsonify({"msg":"You have successfully logout"})
+            
 """
 @contact_signal.connect
 def send_email_alart(sender, comment, post_author_email,  recipients):
