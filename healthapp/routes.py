@@ -1,7 +1,10 @@
 """to start an app"""
-from flask import render_template, request, flash, redirect, jsonify
+from flask import render_template, request, jsonify, session, redirect
+from flask_cors import cross_origin
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_jwt_extended import create_access_token
 from healthapp import app, db, csrf
-from healthapp.models import User
+from healthapp.models import User, Login
 from healthapp.signal import contact_signal
 from healthapp.email import send_email_alert
 
@@ -9,18 +12,22 @@ from healthapp.email import send_email_alert
 @app.route('/', methods=['GET'])
 def home():
     if request.method=='GET':
-        return "Welcome to Health Paltform"
+        return render_template('form.html')
 
 """register"""
 @app.route('/register', methods=['GET','POST'])
-def register():
+@csrf.exempt
+@cross_origin()
+def register():    
     if request.method=='POST':
-        name=request.form['name']
-        email=request.form['email']
-        role = request.form['role']
-        phoneNo = request.form['phoneno']
-        licenseNo = request.form['licenseNo']
-        bloodgroup = request.form['bloodgroup']
+        name=request.json['name']
+        email=request.json['email']
+        role = request.json['role']
+        phoneNo = request.json['phoneno']
+        pwd=request.json['pwd']
+        cpwd=request.json['cpwd']
+        licenseNo = request.json['licenseNo']
+        bloodgroup = request.json['bloodgroup']
         # csrf_token = csrf.generate_csrf()
         # print(csrf_token)
         if role == 'patient' and licenseNo == 'None':
@@ -28,20 +35,30 @@ def register():
                 email =="" and
                 role =="" and
                 phoneNo =="" and
-                bloodgroup ==""):
+                bloodgroup =="" and
+                pwd=="" and
+                cpwd==""):
                 return jsonify({"msg":"One or more field is empty"})
+            
+            elif (pwd != cpwd):
+                return jsonify({"msg":"Password does not match"})
+            
             elif (name !="" and
                   email !="" and
                   role !="" and
                   phoneNo !="" and
-                  bloodgroup !=""):
+                  bloodgroup !="" and
+                  pwd != ""):
+                formated = generate_password_hash(pwd)
                 newuser = User(user_name=name,
                                user_email=email, 
                                user_role=role, 
                                user_phoneNo=phoneNo, 
-                               user_bloodgroup=bloodgroup 
+                               user_bloodgroup=bloodgroup,
+                               user_pass=formated 
                                )
                 db.session.add(newuser)
+                db.session.commit()
                 return jsonify({"msg":"Registration Successful"})
         
         elif role == 'doctor' and licenseNo !='':
@@ -50,22 +67,65 @@ def register():
                 role =="" and
                 phoneNo =="" and
                 licenseNo =="" and
-                bloodgroup ==""):
+                bloodgroup =="" and
+                pwd=="" and
+                cpwd==""):
                 return jsonify({"msg":"One or more field is empty"})
+            
+            elif (pwd != cpwd):
+                return jsonify({"msg":"Password does not match"})
+            
             elif (name !="" and
                   email !="" and
                   role !="" and
                   phoneNo !="" and
                   licenseNo !="" and
-                  bloodgroup !=""):
+                  bloodgroup !="" and
+                  pwd !=""):
+                formated = generate_password_hash(pwd)
                 newuser = User(user_name=name,
                                user_email=email, 
                                user_role=role, 
                                user_phoneNo=phoneNo, 
-                               user_bloodgroup=bloodgroup)
+                               user_bloodgroup=bloodgroup,
+                               user_pass=formated)
                 db.session.add(newuser)
+                db.session.commit()
             return jsonify({"msg":"Registration Successful"})
 
+
+"""register"""
+@app.route('/login', methods=['GET','POST'])
+@csrf.exempt
+@cross_origin()
+def login():
+    if request.method=='POST':
+        email=request.json['email']
+        pwd=request.json['pwd']
+        print(email)
+        print(pwd)
+        if email=="" or pwd=="":
+            return jsonify({"msg":"One or more field is empty"})
+        if email !="" or pwd !="":
+            # quering user by filtering with email
+            user=db.session.query(User).filter_by(user_email=email).first()
+            if user ==None:
+                return jsonify({'msg':'kindly supply a valid credentials'})
+            else:
+                formated_pwd=user.user_pass
+                # checking password hash
+                checking = check_password_hash(formated_pwd, pwd)
+                if checking:
+                    # access_token=create_access_token
+                    session['user']=user.user_id
+                    lo=Login(login_email=user.user_email, login_userid=user.user_id)
+                    db.session.add(lo)
+                    db.session.commit()
+                    return jsonify({"msg":"Login successful"})
+                else:
+                    return jsonify({"msg":"kindly supply a valid email address and password"})
+        
+        
 """
 @contact_signal.connect
 def send_email_alart(sender, comment, post_author_email,  recipients):
