@@ -15,7 +15,7 @@ def home():
         return render_template('form.html')
 
 """register"""
-@app.route('/register', methods=['GET','POST'])
+@app.route('/api/register/', methods=['GET','POST'])
 @csrf.exempt
 @cross_origin()
 def register():    
@@ -94,7 +94,7 @@ def register():
 
 
 """register"""
-@app.route('/login', methods=['GET','POST'])
+@app.route('/api/login/', methods=['GET','POST'])
 @csrf.exempt
 @cross_origin()
 def login():
