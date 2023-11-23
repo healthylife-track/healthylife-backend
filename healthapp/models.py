@@ -21,7 +21,8 @@ class User(db.Model):
 class MedTrack(db.Model):
     mt_id=db.Column(db.Integer(), primary_key=True, autoincrement=True)
     mt_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow(), index=True)
-    mt_track=db.Column(db.Boolean, default=False)
+    mt_track=db.Column(db.String(225), default=False)
+    mt_check=db.Column(db.String(225), default=False)
     mt_userid=db.Column(db.Integer(), db.ForeignKey('user.user_id'))
     userobj = db.relationship("User", back_populates='mtobj')
 
@@ -29,8 +30,10 @@ class MedTrack(db.Model):
 class MedReminder(db.Model):
     md_id=db.Column(db.Integer(), primary_key=True, autoincrement=True)
     md_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow(), index=True)
-    md_alert = db.Column(db.String(50), nullable=False)
-    md_detail=db.Column(db.Text(), nullable=True)
+    md_name = db.Column(db.String(100), nullable=False)
+    md_unit=db.Column(db.String(10), nullable=True)
+    md_date = db.Column(db.String(10), nullable=True)
+    md_active = db.Column(db.Enum('taken','skipped','missed'), nullable=True, server_default='missed')
     md_userid=db.Column(db.Integer(), db.ForeignKey('user.user_id'))
     userobj2 = db.relationship("User", back_populates='mdobj')
 

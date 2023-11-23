@@ -5,7 +5,7 @@ from flask_cors import cross_origin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
 from healthapp import app, db, csrf
-from healthapp.models import User, Login
+from healthapp.models import User, Login, MedReminder
 from healthapp.signal import contact_signal
 from healthapp.email import send_email_alert
 
@@ -27,11 +27,11 @@ def register():
         name=request.json['name']
         email=request.json['email']
         role = request.json['role']
-        phoneNo = request.json['phoneno']
-        pwd=request.json['pwd']
-        cpwd=request.json['cpwd']
-        licenseNo = request.json['licenseNo']
-        bloodgroup = request.json['bloodgroup']
+        phoneNo = request.json['phoneNo']
+        pwd=request.json['password']
+        cpwd=request.json['confirmPassword']
+        licenseNo = request.json['LicenseNo']
+        bloodgroup = request.json['genotype']
         
         if role == 'patient' and licenseNo == 'None':
             if (name =="" or
@@ -108,9 +108,7 @@ def login():
     
     if request.method=='POST':
         email=request.json['email']
-        pwd=request.json['pwd']
-        print(email)
-        print(pwd)
+        pwd=request.json['password']
         if email=="" or pwd=="":
             return jsonify({"msg":"One or more field is empty"})
         if email !="" or pwd !="":
@@ -127,7 +125,7 @@ def login():
                     lo=Login(login_email=user.user_email, login_userid=user.user_id)
                     db.session.add(lo)
                     db.session.commit()
-                    return jsonify({"msg":"Login successful"})
+                    return jsonify({"msg":"Login successful", "id":session['user']})
                 else:
                     return jsonify({"msg":"kindly supply a valid email address and password"})
         
@@ -145,7 +143,46 @@ def logout():
         lo.logout_date=datetime.utcnow()
         db.session.commit()
         return jsonify({"msg":"You have successfully logout"})
-            
+
+
+"""dashboard"""
+@app.route('/dashbord/', methods=['GET'])
+def dashboard():
+    loggedin = session.get('user')
+    if loggedin==None:
+        return redirect('/')
+    
+    if request.method=='GET':
+        newuser=User.query.get(loggedin)
+        user_obj = {"id":newuser.user_id,
+                    "name":newuser.user_name, 
+                    "email":newuser.user_email,
+                    "password":newuser.user_pass,
+                    "role":newuser.user_role,
+                    "phoneNo":newuser.user_phoneNo,
+                    "LicenseNo":newuser.user_licenseNo,
+                    "genotype":newuser.user_bloodgroup
+                    }
+    return jsonify(user_obj)
+
+
+"""reminder"""
+@app.route('/reminder/<id> ', methods=['GET', 'POST'])
+def reminder(id):
+    loggedin = session.get('user')
+    if loggedin==None:
+        return redirect('/')
+    if request.method=="GET":
+        remd=MedReminder.query.filter_by(md_userid=id).all()
+        return jsonify({"msg":"i get all", "id":id})
+    
+    if request.method=="POST":
+        med=MedReminder()
+        db.session.add(med)
+        db.seesion.commit()
+        return jsonify({"msg":"i post all"})
+    
+
 """
 @contact_signal.connect
 def send_email_alart(sender, comment, post_author_email,  recipients):

@@ -23,9 +23,11 @@ class healthTest(unittest.TestCase):
             'name': 'John Doe',
             'email': 'john@example.com',
             'role': 'patient',
-            'phoneno': '1234567890',
+            'phoneNo': '1234567890',
             'licenseNo': 'None',
-            'bloodgroup': 'A+',
+            'genotype': 'A+',
+            'password':'1234',
+            'confirmPassword':'1234'
         }
 
         response = self.app.post('/register/', data=data)
@@ -40,9 +42,11 @@ class healthTest(unittest.TestCase):
             'name': 'Dr. Smith',
             'email': 'smith@example.com',
             'role': 'doctor',
-            'phoneno': '9876543210',
+            'phoneNo': '9876543210',
             'licenseNo': '123456',
-            'bloodgroup': 'B-',
+            'genotype': 'B-',
+            'password':'1234',
+            'confirmPassword':'1234'
         }
 
         response = self.app.post('/register/', data=data)
@@ -57,9 +61,11 @@ class healthTest(unittest.TestCase):
             'name': '',
             'email': '',
             'role': '',
-            'phoneno': '',
+            'phoneNo': '',
             'licenseNo': '',
-            'bloodgroup': '',
+            'genotype': '',
+            'password':'',
+            'confirmPassword':''
         }
 
         response = self.app.post('/register/', data=data)
@@ -71,21 +77,21 @@ class healthTest(unittest.TestCase):
     """ test for login"""
     
     def test_login_with_empty_fields(self):
-        response = self.app.post('/login/', json={'email': '', 'pwd': ''})
+        response = self.app.post('/login/', json={'email': '', 'password': ''})
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['msg'], 'One or more field is empty')
 
     def test_login_with_invalid_credentials(self):
-        response = self.app.post('/login/', json={'email': 'test@example.com', 'pwd': 'wrong_password'})
+        response = self.app.post('/login/', json={'email': 'test@example.com', 'password': 'wrong_password'})
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(data['msg'], 'kindly supply a valid credentials')
 
     def test_successful_login(self):
-        response = self.app.post('/login/', json={'email': 'test@example.com', 'pwd': 'correct_password'})
+        response = self.app.post('/login/', json={'email': 'test@example.com', 'password': 'correct_password'})
         data = response.get_json()
 
         self.assertEqual(response.status_code, 200)
