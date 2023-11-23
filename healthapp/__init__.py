@@ -31,4 +31,4 @@ from healthapp import routes #since routes is now a module on its own
 from healthapp import models
 
 #load test
-from healthapp import test
+from healthapp import route_test
