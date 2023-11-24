@@ -19,16 +19,10 @@ class User(db.Model):
     #relationship
     mdobj = db.relationship("Medreminder", back_populates='userobj2')
     loginobj = db.relationship('Login', back_populates='userobj3')
-    doctor_written = db.relationship('Medreport', back_populates='doctor', foreign_keys='Medreport.mr_doctorid')
-    reports_received = db.relationship('Medreport', back_populates='patient', foreign_keys='Medreport.mr_patientid')
-    
-
-class Drugname(db.Model):
-    mt_id=db.Column(db.Integer(), primary_key=True, autoincrement=True)
-    mt_date = db.Column(db.DateTime(), default=datetime.datetime.utcnow(), index=True)
-    mt_drugname=db.Column(db.String(225), default=False)
-    mt_mdreminderid=db.Column(db.Integer(), db.ForeignKey('medreminder.md_id'))
-    drugobj = db.relationship("Medreminder", back_populates='mddrugobj')
+    doctor_written = db.relationship('Medreport', back_populates='doctor',
+                                     foreign_keys='Medreport.mr_doctorid')
+    reports_received = db.relationship('Medreport', back_populates='patient',
+                                       foreign_keys='Medreport.mr_patientid')
 
 
 class Medreminder(db.Model):
@@ -39,10 +33,10 @@ class Medreminder(db.Model):
     md_time = db.Column(db.String(10), nullable=True)
     md_timeInterval = db.Column(db.String(10), nullable=True)
     md_dayinterval = db.Column(db.String(10), nullable=True)
-    md_usage = db.Column(db.Enum('taken','skipped','missed'), nullable=True, server_default='missed')
+    md_usage = db.Column(db.Enum('taken','skipped','missed'), 
+                         nullable=True, server_default='missed')
     md_userid=db.Column(db.Integer(), db.ForeignKey('user.user_id'))
     userobj2 = db.relationship("User", back_populates='mdobj')
-    mddrugobj = db.relationship("Drugname", back_populates='drugobj')
 
 
 class Medreport(db.Model):

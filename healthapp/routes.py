@@ -3,7 +3,6 @@ import datetime
 from flask import render_template, request, jsonify, session, redirect
 from flask_cors import cross_origin
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import create_access_token
 from healthapp import app, db, csrf
 from healthapp.models import User, Login, Medreminder
 from healthapp.signal import contact_signal
@@ -189,7 +188,7 @@ def dashboard():
                     "genotype":newuser.user_genotype,
                     "bloodGroup":newuser.user_bloodgroup,
                     "medicalCondition":newuser.user_medCondition,
-                    "medicalReport":[{
+                    "medicalReminder":[{
                         "id":md.md_id, 
                         "date":md.md_date,
                         "drugName":md.md_drugname,
@@ -201,26 +200,63 @@ def dashboard():
                         } for md in newuser.mdobj]            
                     }
     return jsonify(user_obj)
-# "reports_written":newuser.reports_written,
-# "reports_received":newuser.reports_received   
+
 
 """reminder"""
-@app.route('/reminder/<id> ', methods=['GET', 'POST'])
-def reminder(id):
+@app.route('/medication_reminder/<id>/ ', methods=['GET'])
+def medreminder(id):
     loggedin = session.get('user')
     if loggedin==None:
         return redirect('/')
-    if request.method=="GET":
-        remd=Medreminder.query.filter_by(md_userid=id).all()
-        return jsonify({"msg":"i get all", "id":id})
     
-    if request.method=="POST":
-        med=Medreminder()
-        db.session.add(med)
-        db.seesion.commit()
-        return jsonify({"msg":"i post all"})
+    if request.method=='GET':
+        remd=Medreminder.query.filter_by(md_userid=id).all()
+        remd_obj ={
+            "medicalReminder":[{
+                "id":md.md_id, 
+                "date":md.md_date,
+                "drugName":md.md_drugname,
+                "drugUnit":md.md_drugunit,
+                "time":md.md_time,
+                "timeInterval":md.md_timeInterval,
+                "dayInterval":md.md_dayinterval,
+                "usage":md.md_usage
+                } for md in remd]
+        }
+        return jsonify({"MedicalReminder":remd_obj, "id":id})
     
 
+
+"""setup reminder"""
+@app.route('/setupreminder/ ', methods=['POST'])
+@csrf.exempt
+@cross_origin()
+def setup_reminder():
+    loggedin = session.get('user')
+    if loggedin==None:
+        return redirect('/')
+    
+    if request.method=="POST":
+        drugname = request.json['drugName']
+        drugunit = request.json['drugUnit']
+        time = request.json['time']
+        timeInterval = request.json['timeInterval']
+        dayInterval = request.json['dayInterval']
+        usage = request.json['usage']
+        userid = request.json['userid']
+        
+        med=Medreminder(md_drugname=drugname, md_drugunit=drugunit,
+                        md_time=time, md_timeInterval=timeInterval,
+                        md_dayinterval=dayInterval, md_usage=usage,
+                        md_userid=userid )
+        db.session.add(med)
+        db.seesion.commit()
+        return jsonify({"msg":"Reminder set successfully"})
+    
+    
+    
+    
+    
 """
 @contact_signal.connect
 def send_email_alart(sender, comment, post_author_email,  recipients):
