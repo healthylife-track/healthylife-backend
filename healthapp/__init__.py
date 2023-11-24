@@ -11,6 +11,7 @@ app = Flask(__name__, instance_relative_config=True)
 # jwt = JWTManager(app)
 csrf=CSRFProtect(app)
 
+
 #Load the config file
 from healthapp import config
 app.config.from_object(config.LiveConfig)

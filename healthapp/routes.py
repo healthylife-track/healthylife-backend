@@ -5,7 +5,7 @@ from flask_cors import cross_origin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token
 from healthapp import app, db, csrf
-from healthapp.models import User, Login, MedReminder
+from healthapp.models import User, Login, Medreminder
 from healthapp.signal import contact_signal
 from healthapp.email import send_email_alert
 
@@ -24,21 +24,29 @@ def register():
         return redirect('/')
     
     if request.method=='POST':
-        name=request.json['name']
+        fname=request.json['firstname']
+        lname=request.json['lastname']
         email=request.json['email']
         role = request.json['role']
         phoneNo = request.json['phoneNo']
         pwd=request.json['password']
         cpwd=request.json['confirmPassword']
         licenseNo = request.json['LicenseNo']
-        bloodgroup = request.json['genotype']
+        bloodgroup = request.json['bloodGroup']
+        genotype = request.json['genotype']
+        medCon = request.json['medicalCondition']
+        # pic = request.json['profilePicture']
+        
         
         if role == 'patient' and licenseNo == 'None':
-            if (name =="" or
+            if (fname =="" or
+                lname =="" or
                 email =="" or
                 role =="" or
                 phoneNo =="" or
                 bloodgroup =="" or
+                genotype =="" or
+                medCon =="" or
                 pwd=="" or
                 cpwd==""):
                 return jsonify({"msg":"One or more field is empty"})
@@ -46,18 +54,24 @@ def register():
             elif (pwd != cpwd):
                 return jsonify({"msg":"Password does not match"})
             
-            elif (name !="" and
+            elif (fname !="" and
+                  lname !="" and
                   email !="" and
                   role !="" and
                   phoneNo !="" and
                   bloodgroup !="" and
+                  genotype !="" and
+                  medCon !="" and
                   pwd != ""):
                 formated = generate_password_hash(pwd)
-                newuser = User(user_name=name,
+                newuser = User(user_fname=fname,
+                               user_lname=lname,
                                user_email=email, 
                                user_role=role, 
                                user_phoneNo=phoneNo, 
                                user_bloodgroup=bloodgroup,
+                               user_genotype=genotype,
+                               user_medCondition=medCon,
                                user_pass=formated 
                                )
                 db.session.add(newuser)
@@ -65,12 +79,15 @@ def register():
                 return jsonify({"msg":"Registration Successful"})
         
         elif role == 'doctor' and licenseNo !='':
-            if (name =="" or
+            if (fname =="" or
+                lname =="" or
                 email =="" or
                 role =="" or
                 phoneNo =="" or
                 licenseNo =="" or
                 bloodgroup =="" or
+                genotype =="" or
+                medCon =="" or
                 pwd=="" or
                 cpwd==""):
                 return jsonify({"msg":"One or more field is empty"})
@@ -78,19 +95,26 @@ def register():
             elif (pwd != cpwd):
                 return jsonify({"msg":"Password does not match"})
             
-            elif (name !="" and
+            elif (fname !="" and
+                  lname !="" and
                   email !="" and
                   role !="" and
                   phoneNo !="" and
                   licenseNo !="" and
                   bloodgroup !="" and
+                  genotype !="" and
+                  medCon !="" and
                   pwd !=""):
                 formated = generate_password_hash(pwd)
-                newuser = User(user_name=name,
+                newuser = User(user_fname=fname,
+                               user_lname=lname,
                                user_email=email, 
                                user_role=role, 
                                user_phoneNo=phoneNo, 
                                user_bloodgroup=bloodgroup,
+                               user_licenseNo=licenseNo,
+                               user_genotype=genotype,
+                               user_medCondition=medCon,
                                user_pass=formated)
                 db.session.add(newuser)
                 db.session.commit()
@@ -109,11 +133,12 @@ def login():
     if request.method=='POST':
         email=request.json['email']
         pwd=request.json['password']
-        if email=="" or pwd=="":
+        role=request.json['role']
+        if email=="" or pwd=="" or role=="":
             return jsonify({"msg":"One or more field is empty"})
         if email !="" or pwd !="":
             # quering user by filtering with email
-            user=db.session.query(User).filter_by(user_email=email).first()
+            user=db.session.query(User).filter_by(user_email=email, user_role=role).first()
             if user ==None:
                 return jsonify({'msg':'kindly supply a valid credentials'})
             else:
@@ -140,7 +165,7 @@ def logout():
     if request.method == 'GET':
         session.pop('user', None)
         lo=Login.query.filter_by(login_userid=loggedin, logout_date=None).first()
-        lo.logout_date=datetime.utcnow()
+        lo.logout_date=datetime.datetime.utcnow()
         db.session.commit()
         return jsonify({"msg":"You have successfully logout"})
 
@@ -155,16 +180,29 @@ def dashboard():
     if request.method=='GET':
         newuser=User.query.get(loggedin)
         user_obj = {"id":newuser.user_id,
-                    "name":newuser.user_name, 
+                    "firstname":newuser.user_fname,
+                    "lastname":newuser.user_lname,  
                     "email":newuser.user_email,
-                    "password":newuser.user_pass,
                     "role":newuser.user_role,
                     "phoneNo":newuser.user_phoneNo,
                     "LicenseNo":newuser.user_licenseNo,
-                    "genotype":newuser.user_bloodgroup
+                    "genotype":newuser.user_genotype,
+                    "bloodGroup":newuser.user_bloodgroup,
+                    "medicalCondition":newuser.user_medCondition,
+                    "medicalReport":[{
+                        "id":md.md_id, 
+                        "date":md.md_date,
+                        "drugName":md.md_drugname,
+                        "drugUnit":md.md_drugunit,
+                        "time":md.md_time,
+                        "timeInterval":md.md_timeInterval,
+                        "dayInterval":md.md_dayinterval,
+                        "usage":md.md_usage
+                        } for md in newuser.mdobj]            
                     }
     return jsonify(user_obj)
-
+# "reports_written":newuser.reports_written,
+# "reports_received":newuser.reports_received   
 
 """reminder"""
 @app.route('/reminder/<id> ', methods=['GET', 'POST'])
@@ -173,11 +211,11 @@ def reminder(id):
     if loggedin==None:
         return redirect('/')
     if request.method=="GET":
-        remd=MedReminder.query.filter_by(md_userid=id).all()
+        remd=Medreminder.query.filter_by(md_userid=id).all()
         return jsonify({"msg":"i get all", "id":id})
     
     if request.method=="POST":
-        med=MedReminder()
+        med=Medreminder()
         db.session.add(med)
         db.seesion.commit()
         return jsonify({"msg":"i post all"})
