@@ -5,4 +5,4 @@ app_signal=Namespace()
 
 
 """ signals for email notifications on daily medication notification """
-contact_signal = app_signal.signal('contact')
+reminder_signal = app_signal.signal('reminder')
