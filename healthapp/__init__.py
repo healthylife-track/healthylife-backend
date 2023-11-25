@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
-# from flask_jwt_extended import JWTManager
+from flask_apscheduler import APScheduler
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Message, Mail
 from flask_migrate import Migrate
@@ -10,6 +10,7 @@ from flask_migrate import Migrate
 app = Flask(__name__, instance_relative_config=True)
 # jwt = JWTManager(app)
 csrf=CSRFProtect(app)
+scheduler = APScheduler()
 
 
 #Load the config file
