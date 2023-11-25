@@ -446,31 +446,19 @@ def done_task(id):
     if loggedin==None and doctor==None:
         return redirect('/')
     if request.method=='POST':
-        taken=request.json['taken']
-        if taken!="":
-            md=Medreminder.query.filter_by(md_id=id).first()
-            md.md_usage=taken
-            db.session.commit()
-            return jsonify({"msg":"Task updated successfully"})
+        taken=request.json['taskUpdate']
+        if taken == "taken":
+            if taken!="":
+                md=Medreminder.query.filter_by(md_id=id).first()
+                md.md_usage=taken
+                db.session.commit()
+                return jsonify({"msg":"Task updated successfully"})
+        elif taken == "skipped":
+            if taken!="":
+                md=Medreminder.query.filter_by(md_id=id).first()
+                md.md_usage=taken
+                db.session.commit()
+                return jsonify({"msg":"Task updated successfully"})            
         else:
             return jsonify({"msg":"Task failed to update"})
 
-"updating reminder task (skipped)"
-@app.route('/skipped_task/<id>/', methods=['POST'])
-@csrf.exempt
-@cross_origin()
-def skipped_task(id):
-    loggedin = session.get('user')
-    doctor = session.get('doctor')
-    if loggedin==None and doctor==None:
-        return redirect('/')
-    
-    if request.method=='POST':
-        skipped=request.json['skipped']
-        if skipped!="":
-            md=Medreminder.query.filter_by(md_id=id).first()
-            md.md_usage=skipped
-            db.session.commit()
-            return jsonify({"msg":"Task updated successfully"})
-        else:
-            return jsonify({"msg":"Task failed to update"})
