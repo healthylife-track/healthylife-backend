@@ -13,6 +13,7 @@ from healthapp.email import send_email_alert
 
 """homepage"""
 @app.route('/', methods=['GET'])
+@cross_origin(origins=['*'])
 def home():
     if request.method=='GET':
         return render_template('index.html')
@@ -20,7 +21,7 @@ def home():
 """register"""
 @app.route('/register/', methods=['GET','POST'])
 @csrf.exempt
-@cross_origin()
+@cross_origin(origins=['*'])
 def register():
     if request.method=='GET':
         return redirect('/')
@@ -127,7 +128,7 @@ def register():
 """login"""
 @app.route('/login/', methods=['GET','POST'])
 @csrf.exempt
-@cross_origin()
+@cross_origin(origins=['*'])
 def login():
     if request.method=='GET':
         return redirect('/')
@@ -177,6 +178,7 @@ def login():
 
 """logout session"""
 @app.route('/logout/')
+@cross_origin(origins=['*'])
 def logout():
     loggedin = session.get('user')
     doctor = session.get('doctor')
@@ -201,6 +203,7 @@ def logout():
 
 """dashboard"""
 @app.route('/dashbord/', methods=['GET'])
+@cross_origin(origins=['*'])
 def dashboard():
     loggedin = session.get('user')
     doctor = session.get('doctor')
@@ -263,6 +266,7 @@ def dashboard():
 
 """reminder"""
 @app.route('/reminder/<id>/', methods=['GET'])
+@cross_origin(origins=['*'])
 def medreminder(id):
     loggedin = session.get('user')
     if loggedin==None:
@@ -288,7 +292,7 @@ def medreminder(id):
 """setup reminder"""
 @app.route('/set_reminder/', methods=['POST'])
 @csrf.exempt
-@cross_origin()
+@cross_origin(origins=['*'])
 def set_reminder():
     loggedin = session.get('user')
     if loggedin==None:
@@ -322,7 +326,7 @@ def set_reminder():
 """report details """
 @app.route('/report/detail/<id>/', methods=['GET', 'POST'])
 @csrf.exempt
-@cross_origin()
+@cross_origin(origins=['*'])
 def report(id):
     loggedin = session.get('user')
     doctor = session.get('doctor')
@@ -376,7 +380,7 @@ def report(id):
 """Patients report """
 @app.route('/list/allpatient/', methods=['GET', 'POST'])
 @csrf.exempt
-@cross_origin()
+@cross_origin(origins=['*'])
 def all_patients():
     loggedin = session.get('user')
     doctor = session.get('doctor')
@@ -439,7 +443,7 @@ def send_email_alart(sender, comment, email,  recipients):
 "updating reminder task (done)"
 @app.route('/done_task/<id>/', methods=['POST'])
 @csrf.exempt
-@cross_origin()
+@cross_origin(origins=['*'])
 def done_task(id):
     loggedin = session.get('user')
     doctor = session.get('doctor')
