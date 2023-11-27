@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_wtf.csrf import CSRFProtect
+from flask_cors import CORS
 from flask_apscheduler import APScheduler
 from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Message, Mail
@@ -10,7 +11,8 @@ from flask_migrate import Migrate
 app = Flask(__name__, instance_relative_config=True)
 # jwt = JWTManager(app)
 csrf=CSRFProtect(app)
-scheduler = APScheduler()
+cors=CORS(app, resources={r'*':{'origins':'*'}})
+scheduler = APScheduler(app)
 
 
 #Load the config file
