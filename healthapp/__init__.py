@@ -12,7 +12,7 @@ app = Flask(__name__, instance_relative_config=True)
 # jwt = JWTManager(app)
 csrf=CSRFProtect(app)
 cors=CORS(app, resources={r'*':{'origins':'*'}})
-scheduler = APScheduler(app)
+scheduler=APScheduler(app)
 
 
 #Load the config file

@@ -273,7 +273,7 @@ def medreminder(id):
         return redirect('/')
     
     if request.method=='GET':
-        remd=Medreminder.query.filter_by(md_userid=id).all()
+        remd=Medreminder.query.filter_by(md_userid=id, md_usage='missed').all()
         remd_obj ={
             "medicalReminder":[{
                 "id":md.md_id, 
@@ -466,3 +466,27 @@ def done_task(id):
         else:
             return jsonify({"msg":"Task failed to update"})
 
+
+"""medical history"""
+@app.route('/medical_history/<id>/', methods=['GET'])
+@cross_origin(origins=['*'])
+def medhistory(id):
+    loggedin = session.get('user')
+    if loggedin==None:
+        return redirect('/')
+    
+    if request.method=='GET':
+        remd=Medreminder.query.filter_by(md_userid=id).all()
+        remd_obj ={
+            "History":[{
+                "id":md.md_id, 
+                "date":md.md_date,
+                "drugName":md.md_drugname,
+                "drugDosage":md.md_drugunit,
+                "time":md.md_time,
+                "timeInterval":md.md_timeInterval,
+                "dayInterval":md.md_dayinterval,
+                "usage":md.md_usage
+                } for md in remd]
+        }
+        return jsonify({"MedicalHistory":remd_obj, "id":loggedin})
