@@ -125,52 +125,56 @@ def register():
         else:
             return jsonify({"msg":"Kindly fill all field"})
 
+
 """login"""
 @app.route('/login/', methods=['GET','POST'])
 @csrf.exempt
-@cross_origin(origins=['*'])
+# @cross_origin(origins=['*'])
 def login():
     if request.method=='GET':
         return redirect('/')
-    
+
     if request.method=='POST':
         email=request.json['email']
         pwd=request.json['password']
         role=request.json['role']
         if email=="" or pwd=="" or role=="":
             return jsonify({"msg":"One or more field is empty"})
+
         if email !="" or pwd !="":
             # quering user by filtering with email
             user=db.session.query(User).filter_by(user_email=email, user_role=role).first()
             doct=db.session.query(Doctor).filter_by(doc_email=email, doc_role=role).first()
-            
+
             if user ==None and doct ==None:
                 return jsonify({'msg':'kindly supply a valid credentials'})
+
             else:
                 if user:
                     formated_pwd=user.user_pass
                     # checking password hash
                     checking = check_password_hash(formated_pwd, pwd)
-                    if checking:
+                    if checking==None:
+                        return jsonify({"msg":"kindly supply a valid email address and password"})
+                    else:
                         session['user']=user.user_id
                         lo=Login(login_email=user.user_email, login_userid=user.user_id)
                         db.session.add(lo)
                         db.session.commit()
                         return jsonify({"msg":"Login successful", "id":session['user']})
-                    else:
-                        return jsonify({"msg":"kindly supply a valid email address and password"})
+
                 elif doct:
                     formated_pwd=doct.doc_pass
                     # checking password hash
                     checking = check_password_hash(formated_pwd, pwd)
-                    if checking:
+                    if checking==None:
+                        return jsonify({"msg":"kindly supply a valid email address and password"})
+                    else:
                         session['doctor']=doct.doc_id
                         lo=Login(login_email=doct.doc_email, login_docid=doct.doc_id)
                         db.session.add(lo)
                         db.session.commit()
                         return jsonify({"msg":"Login successful", "id":session['doctor']})
-                    else:
-                        return jsonify({"msg":"kindly supply a valid email address and password"})
                 else:
                     return jsonify({"msg":"Record not found"})
                     
