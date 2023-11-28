@@ -157,6 +157,7 @@ def login():
                     if checking==None:
                         return jsonify({"msg":"kindly supply a valid email address and password"})
                     else:
+                        
                         session['user']=user.user_id
                         lo=Login(login_email=user.user_email, login_userid=user.user_id)
                         db.session.add(lo)
@@ -206,7 +207,7 @@ def logout():
             
 
 """dashboard"""
-@app.route('/dashbord/', methods=['GET'])
+@app.route('/dashboard/', methods=['GET'])
 @cross_origin(origins=['*'])
 def dashboard():
     loggedin = session.get('user')
@@ -269,7 +270,7 @@ def dashboard():
 
 
 """reminder"""
-@app.route('/reminder/<id>/', methods=['GET'])
+@app.route('/reminders/<id>/', methods=['GET'])
 @cross_origin(origins=['*'])
 def medreminder(id):
     loggedin = session.get('user')
